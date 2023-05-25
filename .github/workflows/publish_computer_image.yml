@@ -40,6 +40,9 @@ jobs:
          echo "operator_image_url=${{ github.event.inputs.operator_image_url }}" >> $GITHUB_ENV
          echo "docker_registry_url=${{ github.event.inputs.docker_registry_url }}" >> $GITHUB_ENV
           
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
@@ -67,16 +70,29 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2          
       
-      - name: Build images
-        env:
-          TRAVIS_DIR: computer-dist/src/assembly/travis
-        run: $TRAVIS_DIR/build-images.sh ${{ env.computer_image_url }} ${{ env.operator_image_url }}
-
-      - name: Docker images
-        run: docker images
-
-      - name: Publish
+      - name: Package
         run: |
-          docker push ${{ env.computer_image_url }}
-          docker push ${{ env.operator_image_url }}
+          mvn clean package -DskipTests
+          
+      - name: Build Compuetr Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./apache-hugegraph-computer-incubating-1.0.0
+          file: ./computer-dist/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.computer_image_url }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          
+      - name: Build Operator Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./computer-k8s-operator
+          file: ./computer-k8s-operator/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.operator_image_url }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max          
           
