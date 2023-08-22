@@ -115,7 +115,6 @@ jobs:
         with:
           context: ./computer-k8s-operator/crd-generate
           file: ./computer-k8s-operator/crd-generate/Dockerfile
-          platforms: linux/amd64,linux/arm64
           tags: ${{ env.manager_image_url }}
           push: true
           cache-from: type=gha
