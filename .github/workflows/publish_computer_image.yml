@@ -17,6 +17,9 @@ on:
       operator_image_url:
         required: true
         default: 'hugegraph/hugegraph-computer-operator:latest'
+      manager_image_url:
+        required: true
+        default: 'hugegraph/hugegraph-computer-operator-manager:latest'  
       docker_registry_url:
         required: false
         default: ''
@@ -55,6 +58,11 @@ jobs:
         with:
           java-version: '11'
           distribution: 'zulu'
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.19'
           
       - name: Checkout
         uses: actions/checkout@v2
@@ -73,8 +81,13 @@ jobs:
       - name: Package
         run: |
           mvn clean package -DskipTests
+
+      - name: Build CRD
+        run: |
+          cd computer-k8s-operator/crd-generate
+          make gen-all
           
-      - name: Build Compuetr Image
+      - name: Build Computer Image
         uses: docker/build-push-action@v4
         with:
           context: ./apache-hugegraph-computer-incubating-1.0.0
@@ -94,5 +107,15 @@ jobs:
           tags: ${{ env.operator_image_url }}
           push: true
           cache-from: type=gha
-          cache-to: type=gha,mode=max          
-          
+          cache-to: type=gha,mode=max     
+
+      - name: Build Manger Image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./computer-k8s-operator/crd-generate
+          file: ./computer-k8s-operator/crd-generate/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ env.manager_image_url }}
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max 
