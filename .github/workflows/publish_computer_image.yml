@@ -41,6 +41,7 @@ jobs:
          echo "repository_branch=${{ github.event.inputs.repository_branch }}" >> $GITHUB_ENV
          echo "computer_image_url=${{ github.event.inputs.computer_image_url }}" >> $GITHUB_ENV
          echo "operator_image_url=${{ github.event.inputs.operator_image_url }}" >> $GITHUB_ENV
+         echo "manager_image_url=${{ github.event.inputs.manager_image_url }}" >> $GITHUB_ENV         
          echo "docker_registry_url=${{ github.event.inputs.docker_registry_url }}" >> $GITHUB_ENV
           
       - name: Set up Docker Buildx
