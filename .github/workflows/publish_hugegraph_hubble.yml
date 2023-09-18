@@ -1,6 +1,8 @@
 name: Publish hugegraph-hubble image
 
 on:
+  schedule:
+    - cron: '0 23 * * *'
   workflow_dispatch:
     inputs:
       repository_url:
