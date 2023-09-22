@@ -1,4 +1,4 @@
-name: "Publish server image(latest)"
+name: "Publish hubble image(latest)"
 
 on:
   schedule:
@@ -9,13 +9,13 @@ jobs:
   build_latest:
     runs-on: ubuntu-latest
     env:
-      REPOSITORY_URL: apache/hugegraph
+      REPOSITORY_URL: apache/hugegraph-toolchain
       BRANCH: master
-      IMAGE_URL: hugegraph/hugegraph:latest
+      IMAGE_URL: hugegraph/hubble:latest
       GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       OWNER: hugegraph
       REPO: actions
-      LAST_COMMIT_HASH: ${{vars.LAST_COMMIT_HASH}}
+      LAST_HUBBLE_HASH: ${{vars.LAST_HUBBLE_HASH}}
       
     steps:
     - name: Set up Docker Buildx
@@ -42,44 +42,22 @@ jobs:
     - name: Check if an update is needed
       run: |
         need_update='false'
-        if [[ "$CURRENT_COMMIT_HASH" != "$LAST_COMMIT_HASH" ]]; then
+        if [[ "$CURRENT_COMMIT_HASH" != "$LAST_HUBBLE_HASH" ]]; then
           need_update='true'
         fi
         echo "NEED_UPDATE=$need_update" >> $GITHUB_ENV
         # TODO: replace `if` statements for exit if github provide support for exit gracefully,
         # see https://github.com/actions/runner/issues/662 for more details
 
-    - name: Build X86 Image
-      if: ${{ env.NEED_UPDATE == 'true' }}
+    - name: Build X86 & ARM And Push All
       uses: docker/build-push-action@v5
+      if: ${{ env.NEED_UPDATE == 'true' }}
       with:
         context: .
-        load: true
-        tags: ${{ env.IMAGE_URL }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-    - name: Test X86 Image
-      if: ${{ env.NEED_UPDATE == 'true' }}
-      run: |
-        docker images
-        docker run -itd --name=graph -p 18080:8080 $IMAGE_URL
-        sleep 20s
-        curl 0.0.0.0:18080 || exit
-        docker ps -a
-        sleep 20s
-        curl 0.0.0.0:18080 || exit
-        docker ps -a
-
-    - name: Build ARM & Push all
-      if: ${{ env.NEED_UPDATE == 'true' }}
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        file: ./Dockerfile
+        file: ./hugegraph-hubble/Dockerfile
         platforms: linux/amd64,linux/arm64
-        push: true
         tags: ${{ env.IMAGE_URL }}
+        push: true
         cache-from: type=gha
         cache-to: type=gha,mode=max
 
@@ -90,5 +68,5 @@ jobs:
         -H "Accept: application/vnd.github+json" \
         -H "X-GitHub-Api-Version: 2022-11-28" \
         -H "Authorization: Bearer $GITHUB_TOKEN" \
-        https://api.github.com/repos/$OWNER/$REPO/actions/variables/LAST_COMMIT_HASH \
-        -d '{"name":"LAST_COMMIT_HASH","value":"'"$CURRENT_COMMIT_HASH"'"}'
+        https://api.github.com/repos/$OWNER/$REPO/actions/variables/LAST_HUBBLE_HASH \
+        -d '{"name":"LAST_HUBBLE_HASH","value":"'"$CURRENT_COMMIT_HASH"'"}'
