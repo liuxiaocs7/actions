@@ -30,7 +30,7 @@ on:
         default: ''
       maven_args:
         required: false
-        default: ''
+        default: '-P stage'
         description: 'mvn build args, like "-P stage"'
 
 env:
