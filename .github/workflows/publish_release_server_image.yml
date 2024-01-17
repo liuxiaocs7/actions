@@ -45,6 +45,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: ./hugegraph-server/Dockerfile
         load: true
         tags: ${{ env.image_url }}
         cache-from: type=gha
@@ -66,7 +67,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./Dockerfile
+        file: ./hugegraph-server/Dockerfile
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ env.image_url }}
