@@ -57,7 +57,7 @@ jobs:
 
     - name: Build X86 & ARM And Push All
       uses: docker/build-push-action@v5
-      if: ${{ env.NEED_UPDATE == 'true' }}
+      # if: ${{ env.NEED_UPDATE == 'true' }}
       with:
         context: .
         file: ./hugegraph-hubble/Dockerfile
